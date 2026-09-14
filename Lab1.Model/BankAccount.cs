@@ -9,6 +9,7 @@ namespace laba1.Models
         public string AccountOwner { get; set; }
         public decimal Balance { get; set; }
         public bool IsActive { get; set; } = true; 
+        public bool IsDeleted { get; set; } = false;
 
        
         public BankAccount()
@@ -22,6 +23,26 @@ namespace laba1.Models
             AccountOwner = accountOwner;
             Balance = initialBalance;
             IsActive = true;
+        }
+
+        public bool RemouveAccount()
+        {
+            if (Balance == 0 || Balance < 0)
+            {
+                IsDeleted = true;
+                return true;
+            }
+            return false;
+        }
+
+        public bool RestoreAccount()
+        {
+            if (IsDeleted)
+            {
+                IsDeleted = false;
+                return true;
+            }
+            return false;
         }
 
         public bool Deposit(decimal amount)

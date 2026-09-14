@@ -4,9 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Lab1.Model
+namespace laba1.Models
 {
-    internal class Logic
+    public class Logic
     {
         public List<BankAccount> Accounts { get; } = new List<BankAccount>();
 
@@ -24,7 +24,9 @@ namespace Lab1.Model
 
         public BankAccount? GetAccount(string accountNumber) => Accounts.Find(a => a.AccountNumber == accountNumber);
 
-        public List<BankAccount> GetActiveAccount() => Accounts.Where(x => x.IsActive).ToList();
+        public List<BankAccount> GetActiveAccount() => Accounts.Where(x => x.IsActive || !x.IsDeleted).ToList();
+
+        public List<BankAccount> GetDeletedAccount() => Accounts.Where(x => x.IsDeleted).ToList();
 
         public void FreezeAccountNumber(string accountNumber)
         {
@@ -44,13 +46,19 @@ namespace Lab1.Model
             }
         }
 
-        public void EditAccountOwner(string accountNumber, string newOwner)
+        public bool EditAccountOwner(string accountNumber, string newOwner)
         {
             var account = GetAccount(accountNumber);
             if (account != null)
             {
                 account.EditOwner(newOwner);
+                return true;
             }
+            else
+            {
+                return false;
+            }
+
         }
     }
 }

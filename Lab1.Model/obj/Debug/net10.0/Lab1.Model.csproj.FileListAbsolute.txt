@@ -17,3 +17,8 @@ D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.sourcelink
 D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.dll
 D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\refint\Lab1.Model.dll
 D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.pdb
+D:\VisualStudio Project\laba1\Lab1.Model\bin\Debug\net10.0\Lab1.Model.deps.json
+D:\VisualStudio Project\laba1\Lab1.Model\bin\Debug\net10.0\Lab1.Model.dll
+D:\VisualStudio Project\laba1\Lab1.Model\bin\Debug\net10.0\Lab1.Model.pdb
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\ref\Lab1.Model.dll
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.csproj.Up2Date
