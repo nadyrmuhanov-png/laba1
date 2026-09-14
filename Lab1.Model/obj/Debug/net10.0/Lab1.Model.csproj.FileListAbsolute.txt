@@ -9,3 +9,11 @@ C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.dll
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\refint\Lab1.Model.dll
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.pdb
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\ref\Lab1.Model.dll
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.GeneratedMSBuildEditorConfig.editorconfig
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.AssemblyInfoInputs.cache
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.AssemblyInfo.cs
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.csproj.CoreCompileInputs.cache
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.sourcelink.json
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.dll
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\refint\Lab1.Model.dll
+D:\VisualStudio Project\laba1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.pdb
