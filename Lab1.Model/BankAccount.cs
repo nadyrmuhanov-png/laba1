@@ -95,14 +95,6 @@ namespace laba1.Models
             return false;
         }
 
-        public bool Transfer(BankAccount targetAccount, decimal amount)
-        {
-            if (targetAccount != null && Withdraw(amount))
-            {
-                targetAccount.Deposit(amount);
-                return true;
-            }
-            return false;
-        }
+       
     }
 }

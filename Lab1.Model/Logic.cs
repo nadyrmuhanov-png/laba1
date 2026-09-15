@@ -60,5 +60,23 @@ namespace laba1.Models
             }
 
         }
+
+        public bool Transfer(BankAccount targetAccount, BankAccount senderAccount, decimal amount)
+        {
+            if (senderAccount.Withdraw(amount))
+            {
+                if (targetAccount.Deposit(amount))
+                    return true;
+                else
+                {
+                    senderAccount.Deposit(amount);
+                    return false;
+
+                }
+
+            }
+            else return false;          
+
+        }
     }
 }

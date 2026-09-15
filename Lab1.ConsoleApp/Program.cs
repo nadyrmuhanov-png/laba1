@@ -24,15 +24,23 @@ class ConsoleApp
     }
 
 
-    private void ClearConsole() 
+    private void ClearConsole(string? messageBeforeClear) 
     {
         Console.Clear();
+
+        if (messageBeforeClear != "")
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(messageBeforeClear);
+            Console.ResetColor();
+        }
+
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("==================================================");
         Console.WriteLine("    СИСТЕМА УПРАВЛЕНИЯ БАНКОВСКИМИ СЧЕТАМИ ");
         Console.WriteLine("==================================================");
 
-        if (focusBankAccount != null) 
+        if (focusBankAccount.AccountNumber != null) 
         {
             Console.Write("ВЫБРАННЫЙ СЧЕТ: ");
             Console.ForegroundColor = ConsoleColor.Green;
@@ -56,7 +64,7 @@ class ConsoleApp
         if (!int.TryParse(Console.ReadLine(), out int number))
         {
             Console.WriteLine("Некорректный ввод. Пожалуйста, введите число.");
-            ConsoleMenu();
+
         }
 
         Console.WriteLine();
@@ -80,6 +88,7 @@ class ConsoleApp
             Console.WriteLine("6. Удалить счет");
             Console.WriteLine("7. Восстановить счет");
             Console.WriteLine("8. Показать только активные счета");
+            Console.WriteLine("9. Перевод");
             Console.WriteLine("0. Выход из программы");
             Console.WriteLine(new string('-', 50));
 
@@ -108,11 +117,11 @@ class ConsoleApp
 
                         focusBankAccount = bankAccounts[number - 1];
 
-                        ClearConsole();
+                        ClearConsole("Счет выбран.");
                     }
                     else
                     {
-                        Console.WriteLine("Список счетов пуст. Пожалуйста, добавьте новый счет.");
+                        ClearConsole("Список счетов пуст. Пожалуйста, добавьте новый счет.");
                         Console.WriteLine();
                     }
 
@@ -148,7 +157,7 @@ class ConsoleApp
                                 case 1:
                                     continue;
                                 case 2:
-                                    ClearConsole();
+                                    ClearConsole(null);
                                     break;
 
 
@@ -156,7 +165,7 @@ class ConsoleApp
                         }
                         else
                         {
-                            Console.WriteLine("Список счетов пуст. Пожалуйста, добавьте новый счет.");
+                            ClearConsole("Список счетов пуст. Пожалуйста, добавьте новый счет.");
                             Console.WriteLine();
                         }
 
@@ -180,7 +189,7 @@ class ConsoleApp
                     logic.AddAccount(newAccount);
 
                     
-                    Console.WriteLine("Новый счет успешно добавлен.");
+                    ClearConsole("Новый счет успешно добавлен.");
                     
 
                     break;
@@ -193,32 +202,38 @@ class ConsoleApp
                     if (logic.EditAccountOwner(focusBankAccount.AccountNumber, newOwner)) 
                     {
                         
-                        Console.WriteLine("Владелец счета успешно изменен.");
+                        ClearConsole("Владелец счета успешно изменен.");
                        
                     }
                     else
                     {
                        
-                        Console.WriteLine("Ошибка при изменении владельца счета.");
+                        ClearConsole("Ошибка при изменении владельца счета.");
                         
                     }
 
                     break;
                 case 5:
                     Console.WriteLine("Заморозка / Разморозка счета:\n");
-
-                    if(focusBankAccount.IsActive)
+                    if (focusBankAccount.AccountNumber != null)
                     {
-                        logic.FreezeAccountNumber(focusBankAccount.AccountNumber);
-                        
-                        Console.WriteLine("Счет успешно заморожен.");
+                        if (focusBankAccount.IsActive)
+                        {
+                            logic.FreezeAccountNumber(focusBankAccount.AccountNumber);
+
+                            ClearConsole("Счет успешно заморожен.");
+                        }
+                        else
+                        {
+                            logic.UnfreezeAccountNumber(focusBankAccount.AccountNumber);
+
+                            ClearConsole("Счет успешно разморожен.");
+                        }
+
                     }
                     else
-                    {
-                        logic.UnfreezeAccountNumber(focusBankAccount.AccountNumber);
-                        
-                        Console.WriteLine("Счет успешно разморожен.");
-                    }
+                        ClearConsole("Аккаунт не выбран, выберите аккаунт.");
+                    
 
                     break;
                 case 6:
@@ -230,21 +245,20 @@ class ConsoleApp
                     {
                         if(focusBankAccount.RemouveAccount())
                         {
-                            Console.WriteLine("Счет успешно удален.");
-                            
                             focusBankAccount = null;
+                            ClearConsole("Счет успешно удален.");
+                            
                         }
                         else
                         {
                             
-                            Console.WriteLine("Ошибка при удалении счета. Проверьте баланс счета.");
+                            ClearConsole("Ошибка при удалении счета. Проверьте баланс счета.");
                         }
                     }
                     else 
                     {
-                        ClearConsole();
                         
-                        Console.WriteLine("Удаление счета отменено.");
+                        ClearConsole("Удаление счета отменено.");
 
                     }
                     break;
@@ -272,25 +286,25 @@ class ConsoleApp
                             if (deletedAccounts[restoreChoice - 1].RestoreAccount())
                             {
                                 
-                                Console.WriteLine("Счет успешно восстановлен.");
+                                ClearConsole("Счет успешно восстановлен.");
                             }
                             else
                             {
                                 
-                                Console.WriteLine("Ошибка при восстановлении счета.");
+                                ClearConsole("Ошибка при восстановлении счета.");
                             }
                         }
                         else
                         {
                             
-                            Console.WriteLine("Некорректный выбор. Пожалуйста, выберите счет из списка.");
+                            ClearConsole("Некорректный выбор. Пожалуйста, выберите счет из списка.");
                         }
 
                     }
                     else 
                     {
                         
-                        Console.WriteLine("Удаленные счета отсутствуют.");
+                        ClearConsole("Удаленные счета отсутствуют.");
                     }
 
                    
@@ -304,19 +318,68 @@ class ConsoleApp
                         {
                             Console.WriteLine($"Номер счета: {account.AccountNumber}, Владелец: {account.AccountOwner}, Баланс: {account.Balance}");
                         }
+                        Console.WriteLine("\nНажмите любую кнопку что-бы продолжить...\n");
+                        Console.ReadLine();
+                        ClearConsole(null);
                     }
                     else
                     {
-                        ClearConsole();
-                        Console.WriteLine("Активные счета отсутствуют.");
+                        ClearConsole("Активные счета отсутствуют.");
                     }
                     break;
+                case 9:
+                    while (true) 
+                    {
+                        if (focusBankAccount.AccountNumber != null)
+                        {
+                            Console.WriteLine($"Отправка перевода, от имени {focusBankAccount.AccountOwner}.");
+                            Console.Write("Введите номер счета получателя: ");
+                            string targetNumber = Console.ReadLine();
+
+                            if (logic.GetAccount(targetNumber) != null)
+                            {
+                                while (true) 
+                                {
+                                    Console.WriteLine("Введите сумму: ");
+                                    if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+                                    {
+                                        if (logic.Transfer(logic.GetAccount(targetNumber), focusBankAccount, amount))
+                                        {
+                                            ClearConsole("Перевод прошел успешно.");
+                                        }
+                                        else ClearConsole("Ошибка при отправке перевода. Проверьте данные.");
+
+
+                                }
+                                    else
+                                    {
+                                        Console.WriteLine("Введите подходящую сумму.");
+                                        continue;
+                                    }
+                                }
+                               
+
+                            }
+                            else 
+                            {
+                                Console.WriteLine("Аккаунт не найден, повторите попытку.");
+                                continue;
+                            }
+
+
+
+                        }
+                        else
+                        {
+                            ClearConsole("Аккаунт не выбран.");
+                        }
+                    }
+                   
                 case 0:
                     Console.WriteLine("Выход из программы...");
                     return;
                 default:
-                    ClearConsole();
-                    Console.WriteLine("Некорректный выбор. Пожалуйста, выберите действие из списка.");
+                    ClearConsole("Некорректный выбор. Пожалуйста, выберите действие из списка.");
                     break;
             }
 
