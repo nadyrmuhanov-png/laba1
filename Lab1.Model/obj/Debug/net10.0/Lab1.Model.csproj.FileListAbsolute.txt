@@ -9,3 +9,5 @@ C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.dll
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\refint\Lab1.Model.dll
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.pdb
 C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\ref\Lab1.Model.dll
+C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.sourcelink.json
+C:\Program Files\lab1\Lab1.Model\obj\Debug\net10.0\Lab1.Model.csproj.Up2Date

@@ -16,3 +16,7 @@ C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\refint\Lab1.WinFor
 C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms.pdb
 C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms.genruntimeconfig.cache
 C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\ref\Lab1.WinForms.dll
+C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms..resources
+C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms.MainForm.resources
+C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms.csproj.GenerateResource.cache
+C:\Program Files\lab1\Lab1.WinForms\obj\Debug\net10.0-windows\Lab1.WinForms.sourcelink.json
