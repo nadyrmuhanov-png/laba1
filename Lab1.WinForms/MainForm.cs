@@ -11,6 +11,7 @@ namespace Lab1.WinForms
             InitializeComponent();
             this.Load += MainForm_Load;
             btnCreate.Click += btnCreate_Click;
+            btnEditOwner.Click += btnEditOwner_Click;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -44,6 +45,33 @@ namespace Lab1.WinForms
             txtAccountNumber.Clear();
             txtOwnerName.Clear();
         }
+        private void btnEditOwner_Click(object sender, EventArgs e)
+        {
+           
+            if (SelectedAccount == null)
+            {
+                MessageBox.Show("Выберите счёт в таблице.");
+                return;
+            }
 
+            string newOwner = txtNewOwner.Text;
+            if (string.IsNullOrWhiteSpace(newOwner))
+            {
+                MessageBox.Show("Введите новое имя владельца.");
+                return;
+            }
+
+            if (logic.EditAccountOwner(SelectedAccount.AccountNumber, newOwner))
+            {
+                RefreshGrid();
+                txtNewOwner.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Не удалось изменить владельца.");
+            }
+        }
+        private BankAccount? SelectedAccount =>
+    dataGridView1.CurrentRow?.DataBoundItem as BankAccount;
     }
 }

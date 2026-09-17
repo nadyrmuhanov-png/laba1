@@ -21,6 +21,8 @@
             txtAccountNumber = new TextBox();
             txtOwnerName = new TextBox();
             btnCreate = new Button();
+            txtNewOwner = new TextBox();
+            btnEditOwner = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
@@ -57,6 +59,23 @@
             btnCreate.TabIndex = 3;
             btnCreate.Text = "Создать";
             btnCreate.UseVisualStyleBackColor = true;
+            //
+            // txtNewOwner
+            //
+            txtNewOwner.Location = new Point(20, 360);
+            txtNewOwner.Name = "txtNewOwner";
+            txtNewOwner.Size = new Size(200, 23);
+            txtNewOwner.TabIndex = 4;
+            txtNewOwner.PlaceholderText = "Новый владелец";
+            //
+            // btnEditOwner
+            //
+            btnEditOwner.Location = new Point(240, 360);
+            btnEditOwner.Name = "btnEditOwner";
+            btnEditOwner.Size = new Size(150, 23);
+            btnEditOwner.TabIndex = 5;
+            btnEditOwner.Text = "Изменить владельца";
+            btnEditOwner.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -67,12 +86,16 @@
             Controls.Add(txtOwnerName);
             Controls.Add(txtAccountNumber);
             Controls.Add(dataGridView1);
+            Controls.Add(txtNewOwner);
+            Controls.Add(btnEditOwner);
             Name = "MainForm";
             Text = "MainForm";
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();
+           
         }
+
 
         #endregion
 
@@ -80,5 +103,7 @@
         private TextBox txtAccountNumber;
         private TextBox txtOwnerName;
         private Button btnCreate;
+        private TextBox txtNewOwner;
+        private Button btnEditOwner;
     }
 }
