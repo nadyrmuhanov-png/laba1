@@ -60,8 +60,18 @@ namespace laba1.Models
             }
 
         }
+        public bool RemoveAccount(string accountNumber)
+        {
+            var account = GetAccount(accountNumber);
+            return account != null && account.RemouveAccount();
+        }
 
-        public bool Transfer(BankAccount targetAccount, BankAccount senderAccount, decimal amount)
+        public bool RestoreAccountByNumber(string accountNumber)
+        {
+            var account = Accounts.Find(a => a.AccountNumber == accountNumber);
+            return account != null && account.RestoreAccount();
+        }
+        public bool Transfer(BankAccount senderAccount, BankAccount targetAccount, decimal amount)
         {
             if (senderAccount.Withdraw(amount))
             {

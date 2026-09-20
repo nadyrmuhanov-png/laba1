@@ -10,7 +10,7 @@ class ConsoleApp
     public static void Main()
     {
         Console.Clear();
-        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("==================================================");
         Console.WriteLine("    СИСТЕМА УПРАВЛЕНИЯ БАНКОВСКИМИ СЧЕТАМИ ");
         Console.WriteLine("==================================================");
@@ -343,7 +343,7 @@ class ConsoleApp
                                     Console.WriteLine("Введите сумму: ");
                                     if (decimal.TryParse(Console.ReadLine(), out decimal amount))
                                     {
-                                        if (logic.Transfer(logic.GetAccount(targetNumber), focusBankAccount, amount))
+                                        if (logic.Transfer(focusBankAccount, logic.GetAccount(targetNumber), amount))
                                         {
                                             ClearConsole("Перевод прошел успешно.");
                                         }
