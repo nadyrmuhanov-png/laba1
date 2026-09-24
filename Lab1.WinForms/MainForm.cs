@@ -33,7 +33,7 @@ namespace Lab1.WinForms
         }
         private void btnCreate_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Кнопка нажата!"); // временная проверка
+            
 
             string accountNumber = txtAccountNumber.Text;
             string ownerName = txtOwnerName.Text;

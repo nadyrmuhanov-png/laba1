@@ -33,126 +33,111 @@
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             
-            // dataGridView1
-            
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Dock = DockStyle.Top;
             dataGridView1.Location = new Point(0, 0);
+            dataGridView1.Margin = new Padding(3, 2, 3, 2);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new Size(800, 300);
+            dataGridView1.Size = new Size(700, 225);
             dataGridView1.TabIndex = 0;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
-            
-            // txtAccountNumber
-            
-            txtAccountNumber.Location = new Point(20, 320);
+           
+            txtAccountNumber.Location = new Point(18, 240);
+            txtAccountNumber.Margin = new Padding(3, 2, 3, 2);
             txtAccountNumber.Name = "txtAccountNumber";
             txtAccountNumber.PlaceholderText = "Номер счёта";
-            txtAccountNumber.Size = new Size(200, 27);
+            txtAccountNumber.Size = new Size(176, 23);
             txtAccountNumber.TabIndex = 1;
-             
-            // txtOwnerName
             
-            txtOwnerName.Location = new Point(240, 320);
+            txtOwnerName.Location = new Point(210, 240);
+            txtOwnerName.Margin = new Padding(3, 2, 3, 2);
             txtOwnerName.Name = "txtOwnerName";
             txtOwnerName.PlaceholderText = "ФИО владельца";
-            txtOwnerName.Size = new Size(200, 27);
+            txtOwnerName.Size = new Size(176, 23);
             txtOwnerName.TabIndex = 2;
             
-            // btnCreate
-             
-            btnCreate.Location = new Point(460, 320);
+            btnCreate.Location = new Point(402, 240);
+            btnCreate.Margin = new Padding(3, 2, 3, 2);
             btnCreate.Name = "btnCreate";
-            btnCreate.Size = new Size(100, 27);
+            btnCreate.Size = new Size(88, 23);
             btnCreate.TabIndex = 3;
             btnCreate.Text = "Создать";
             btnCreate.UseVisualStyleBackColor = true;
-             
-            // txtNewOwner
-             
-            txtNewOwner.Location = new Point(20, 360);
+            
+            txtNewOwner.Location = new Point(18, 270);
+            txtNewOwner.Margin = new Padding(3, 2, 3, 2);
             txtNewOwner.Name = "txtNewOwner";
             txtNewOwner.PlaceholderText = "Новый владелец";
-            txtNewOwner.Size = new Size(200, 27);
+            txtNewOwner.Size = new Size(176, 23);
             txtNewOwner.TabIndex = 4;
              
-            // btnEditOwner
-             
-            btnEditOwner.Location = new Point(240, 360);
+            btnEditOwner.Location = new Point(210, 270);
+            btnEditOwner.Margin = new Padding(3, 2, 3, 2);
             btnEditOwner.Name = "btnEditOwner";
-            btnEditOwner.Size = new Size(150, 27);
+            btnEditOwner.Size = new Size(131, 26);
             btnEditOwner.TabIndex = 5;
             btnEditOwner.Text = "Изменить владельца";
             btnEditOwner.UseVisualStyleBackColor = true;
-             
-            // btnDelete
-             
-            btnDelete.Location = new Point(460, 362);
+           
+            btnDelete.Location = new Point(402, 272);
+            btnDelete.Margin = new Padding(3, 2, 3, 2);
             btnDelete.Name = "btnDelete";
-            btnDelete.Size = new Size(100, 25);
+            btnDelete.Size = new Size(88, 22);
             btnDelete.TabIndex = 6;
             btnDelete.Text = "Удалить";
             btnDelete.UseVisualStyleBackColor = true;
-             
-            // chkShowDeleted
-             
-            chkShowDeleted.Location = new Point(20, 400);
+           
+            chkShowDeleted.Location = new Point(18, 300);
+            chkShowDeleted.Margin = new Padding(3, 2, 3, 2);
             chkShowDeleted.Name = "chkShowDeleted";
-            chkShowDeleted.Size = new Size(180, 24);
+            chkShowDeleted.Size = new Size(158, 20);
             chkShowDeleted.TabIndex = 7;
             chkShowDeleted.Text = "Показать удалённые";
             chkShowDeleted.UseVisualStyleBackColor = true;
-            
-            // btnRestore
-            
-            btnRestore.Location = new Point(210, 400);
+           
+            btnRestore.Location = new Point(210, 300);
+            btnRestore.Margin = new Padding(3, 2, 3, 2);
             btnRestore.Name = "btnRestore";
-            btnRestore.Size = new Size(120, 24);
+            btnRestore.Size = new Size(106, 22);
             btnRestore.TabIndex = 8;
             btnRestore.Text = "Восстановить";
             btnRestore.UseVisualStyleBackColor = true;
-             
-            // btnFreezeToggle
-             
-            btnFreezeToggle.Location = new Point(360, 400);
+            
+            btnFreezeToggle.Location = new Point(324, 300);
+            btnFreezeToggle.Margin = new Padding(3, 2, 3, 2);
             btnFreezeToggle.Name = "btnFreezeToggle";
-            btnFreezeToggle.Size = new Size(180, 24);
+            btnFreezeToggle.Size = new Size(166, 22);
             btnFreezeToggle.TabIndex = 9;
             btnFreezeToggle.Text = "Заморозить/Разморозить";
             btnFreezeToggle.UseVisualStyleBackColor = true;
             btnFreezeToggle.Click += btnFreezeToggle_Click_1;
-             
-            // txtTargetAccount
-             
-            txtTargetAccount.Location = new Point(20, 440);
+            
+            txtTargetAccount.Location = new Point(18, 330);
+            txtTargetAccount.Margin = new Padding(3, 2, 3, 2);
             txtTargetAccount.Name = "txtTargetAccount";
             txtTargetAccount.PlaceholderText = "Номер счёта получателя";
-            txtTargetAccount.Size = new Size(200, 27);
+            txtTargetAccount.Size = new Size(176, 23);
             txtTargetAccount.TabIndex = 10;
-             
-            // txtAmount
-             
-            txtAmount.Location = new Point(240, 440);
+            
+            txtAmount.Location = new Point(210, 330);
+            txtAmount.Margin = new Padding(3, 2, 3, 2);
             txtAmount.Name = "txtAmount";
             txtAmount.PlaceholderText = "Сумма";
-            txtAmount.Size = new Size(120, 27);
+            txtAmount.Size = new Size(106, 23);
             txtAmount.TabIndex = 11;
-             
-            // btnTransfer
-             
-            btnTransfer.Location = new Point(380, 440);
+            
+            btnTransfer.Location = new Point(402, 331);
+            btnTransfer.Margin = new Padding(3, 2, 3, 2);
             btnTransfer.Name = "btnTransfer";
-            btnTransfer.Size = new Size(100, 27);
+            btnTransfer.Size = new Size(88, 22);
             btnTransfer.TabIndex = 12;
             btnTransfer.Text = "Перевести";
             btnTransfer.UseVisualStyleBackColor = true;
-             
-            // MainForm
-             
-            AutoScaleDimensions = new SizeF(8F, 20F);
+           
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 520);
+            ClientSize = new Size(700, 390);
             Controls.Add(btnCreate);
             Controls.Add(txtOwnerName);
             Controls.Add(txtAccountNumber);
@@ -166,6 +151,7 @@
             Controls.Add(txtTargetAccount);
             Controls.Add(txtAmount);
             Controls.Add(btnTransfer);
+            Margin = new Padding(3, 2, 3, 2);
             Name = "MainForm";
             Text = "MainForm";
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();

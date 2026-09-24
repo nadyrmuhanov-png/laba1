@@ -6,7 +6,9 @@ class ConsoleApp
 {
     private BankAccount focusBankAccount = new BankAccount();
     private Logic logic = new Logic();
-    
+    /// <summary>
+    /// Точка входа в консольное приложение. Выводит приветственное сообщение и запускает главное меню.
+    /// </summary>
     public static void Main()
     {
         Console.Clear();
@@ -23,7 +25,10 @@ class ConsoleApp
 
     }
 
-
+    /// <summary>
+    /// Очищает консоль и выводит приветственное сообщение, а также информацию о выбранном счёте, если он есть.
+    /// </summary>
+    /// <param name="messageBeforeClear">Сообщение, которое нужно вывести перед очисткой консоли</param>
     private void ClearConsole(string? messageBeforeClear) 
     {
         Console.Clear();
@@ -56,7 +61,10 @@ class ConsoleApp
 
         ConsoleMenu();
     }
-
+    /// <summary>
+    /// Запрашивает у пользователя ввод номера действия и возвращает его в виде целого числа. Если ввод некорректен, выводит сообщение об ошибке.
+    /// </summary>
+    /// <returns></returns>
     private int GetNumber() 
     {
         Console.Write("Введите номер действия: ");
@@ -73,7 +81,9 @@ class ConsoleApp
         return number;
 
     }
-
+    /// <summary>
+    /// Отображает главное меню консольного приложения и обрабатывает выбор пользователя.   
+    /// </summary>
     public void ConsoleMenu() 
     {
         while (true) 
