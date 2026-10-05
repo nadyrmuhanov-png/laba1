@@ -18,12 +18,19 @@ namespace Lab1.WinForms
             btnTransfer.Click += btnTransfer_Click;
             chkShowDeleted.CheckedChanged += (s, e) => RefreshGrid();
         }
-
+        /// <summary>
+        /// Обрабатывает загрузку главной формы: заполняет таблицу актуальным списком счетов.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void MainForm_Load(object sender, EventArgs e)
         {
             RefreshGrid();
         }
-
+        /// <summary>
+        /// Обновляет содержимое таблицы счетов в зависимости от выбранного режима
+        /// отображения (активные или удалённые счета).
+        /// </summary>
         private void RefreshGrid()
         {
             dataGridView1.DataSource = null;
@@ -31,6 +38,12 @@ namespace Lab1.WinForms
                 ? logic.GetDeletedAccount()
                 : logic.GetActiveAccount();
         }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Создать": считывает данные из полей ввода,
+        /// создаёт новый банковский счёт и добавляет его в список.
+        /// </summary>
+        /// <param name="sender">Источник события (кнопка)</param>
+        /// <param name="e">Данные события</param>
         private void btnCreate_Click(object sender, EventArgs e)
         {
             
@@ -52,6 +65,12 @@ namespace Lab1.WinForms
             txtAccountNumber.Clear();
             txtOwnerName.Clear();
         }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Изменить владельца": заменяет ФИО владельца
+        /// у счёта, выбранного в таблице, на введённое пользователем значение.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void btnEditOwner_Click(object sender, EventArgs e)
         {
 
@@ -78,6 +97,12 @@ namespace Lab1.WinForms
                 MessageBox.Show("Не удалось изменить владельца.");
             }
         }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Удалить": помечает выбранный в таблице счёт
+        /// как удалённый, если его баланс равен нулю.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (SelectedAccount == null)
@@ -95,6 +120,12 @@ namespace Lab1.WinForms
                 MessageBox.Show("Нельзя удалить счёт с ненулевым балансом.");
             }
         }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Восстановить": возвращает выбранный в таблице
+        /// удалённый счёт в список активных.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void btnRestore_Click(object sender, EventArgs e)
         {
             if (SelectedAccount == null)
@@ -112,6 +143,13 @@ namespace Lab1.WinForms
                 MessageBox.Show("Не удалось восстановить счёт.");
             }
         }
+
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Заморозить/Разморозить": переключает статус
+        /// активности выбранного в таблице счёта на противоположный.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void btnFreezeToggle_Click(object sender, EventArgs e)
         {
             if (SelectedAccount == null)
@@ -127,6 +165,12 @@ namespace Lab1.WinForms
 
             RefreshGrid();
         }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки "Перевести": выполняет перевод указанной суммы
+        /// с выбранного в таблице счёта на счёт с введённым номером получателя.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события</param>
         private void btnTransfer_Click(object sender, EventArgs e)
         {
             if (SelectedAccount == null)
@@ -165,17 +209,28 @@ namespace Lab1.WinForms
                 MessageBox.Show("Перевод не выполнен — проверьте баланс и статус счетов.");
             }
         }
-
+        /// <summary>
+        /// Обрабатывает клик по ячейке таблицы счетов.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Данные события с информацией о выбранной ячейке</param>
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
         }
-
+        /// <summary>
+        /// Возвращает банковский счёт, выбранный в данный момент в таблице,
+        /// или null, если ни одна строка не выбрана.
+        /// </summary>
         private void btnFreezeToggle_Click_1(object sender, EventArgs e)
         {
 
         }
 
+
+        /// <summary>
+        /// Возвращает банковский счёт, выбранный в данный момент в таблице,
+        /// </summary>
         private BankAccount? SelectedAccount =>
         dataGridView1.CurrentRow?.DataBoundItem as BankAccount;
     }
