@@ -1,6 +1,6 @@
 ﻿
 using Dapper;
-using laba1.Models;
+using Lab1.Model;
 using Microsoft.Data.SqlClient;
 
 namespace Lab1.DataAccessLayer
@@ -9,7 +9,7 @@ namespace Lab1.DataAccessLayer
     /// Реализация репозитория с использованием Dapper для работы с базой данных.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DapperRepository<T> : IRepository<T> where T : IDomainObject
+    public class DapperRepository<T> : IRepository<T> where T : class, IDomainObject
     {
         /// <summary>
         /// Инициализирует новый экземпляр класса DapperRepository с указанной строкой подключения и именем таблицы.
