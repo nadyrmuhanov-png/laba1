@@ -1,5 +1,5 @@
 ﻿
-namespace laba1.Models
+namespace Lab1.Model
 {
     /// <summary>
     /// Интерфейс, представляющий доменный объект с уникальным идентификатором.

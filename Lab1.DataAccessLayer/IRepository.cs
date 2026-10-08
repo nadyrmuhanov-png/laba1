@@ -1,4 +1,4 @@
-﻿using laba1.Models;
+﻿using Lab1.Model;
 
 namespace Lab1.DataAccessLayer
 {
@@ -6,7 +6,7 @@ namespace Lab1.DataAccessLayer
     /// Интерфейс репозитория для работы с доменными объектами типа T.
     /// </summary>
     /// <typeparam name="T">Тип доменного объекта.</typeparam>
-    public interface IRepository<T> where T : IDomainObject
+    public interface IRepository<T> where T : class, IDomainObject
     {
         /// <summary>
         /// Возвращает объект типа T с указанным идентификатором из базы данных.
