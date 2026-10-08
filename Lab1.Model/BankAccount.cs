@@ -2,9 +2,10 @@
 
 namespace laba1.Models
 {
-    public class BankAccount
+    public class BankAccount : IDomainObject
     {
-        
+        public int Id { get; set; }
+
         public string AccountNumber { get; set; }
         public string AccountOwner { get; set; }
         public decimal Balance { get; set; }
@@ -17,13 +18,7 @@ namespace laba1.Models
         public BankAccount()
         {
         }
-        /// <summary>
-        /// Инициализирует новый экземпляр класса BankAccount с указанными параметрами.
-        /// </summary>
-        public interface IDomainObject
-        {
-            int Id { get; set; }
-        }
+   
         /// <summary>
         /// Инициализирует новый экземпляр класса BankAccount с указанными параметрами.
         /// </summary>

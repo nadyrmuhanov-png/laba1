@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
 		<ItemGroup>
+		  <PackageReference Include="Dapper" Version="2.1.89" />
+		  <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+		</ItemGroup>
+	
+		<ItemGroup>
 			<ProjectReference Include="..\Lab1.Model\Lab1.Model.csproj" />
 		</ItemGroup>
 

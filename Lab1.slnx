@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Lab1.ConsoleApp/Lab1.ConsoleApp.csproj" />
+  <Project Path="Lab1.DataAccessLayer/Lab1.DataAccessLayer.csproj" Id="e615ea97-452d-41de-8a88-2f8f5aeab853" />
   <Project Path="Lab1.Model/Lab1.Model.csproj" />
   <Project Path="Lab1.WinForms/Lab1.WinForms.csproj" />
 </Solution>
