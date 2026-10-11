@@ -1,15 +1,22 @@
-using laba1.Models;
+using Lab1.DataAccessLayer;
+using Lab1.Model.ModelsDB;
+using Microsoft.Data.SqlClient;
 
 namespace Lab1.WinForms
-{
-    public partial class MainForm : Form
+{   public partial class MainForm : Form
     {
-        private Logic logic = new Logic();
-
-        public MainForm()
+        /// <summary>Форма для работы с банковскими счетами.</summary>
+        private readonly IRepository<BankAccount> _repository;
+        /// <summary>
+        /// Инициализирует форму с указанным репозиторием для работы с банковскими счетами.
+        /// </summary>
+        /// <param name="repository">Репозиторий для работы с банковскими счетами.</param>
+        public MainForm(IRepository<BankAccount> repository)
         {
+            _repository = repository;
+
             InitializeComponent();
-            this.Load += MainForm_Load;
+            Load += MainForm_Load;
             btnCreate.Click += btnCreate_Click;
             btnEditOwner.Click += btnEditOwner_Click;
             btnDelete.Click += btnDelete_Click;
@@ -18,220 +25,292 @@ namespace Lab1.WinForms
             btnTransfer.Click += btnTransfer_Click;
             chkShowDeleted.CheckedChanged += (s, e) => RefreshGrid();
         }
+
+        /// <summary>Счёт, выбранный в таблице (или null).</summary>
+        private BankAccount? SelectedAccount =>
+            dataGridView1.CurrentRow?.DataBoundItem as BankAccount;
         /// <summary>
-        /// Обрабатывает загрузку главной формы: заполняет таблицу актуальным списком счетов.
+        /// Обработчик события загрузки формы. Настраивает таблицу и обновляет данные.
         /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void MainForm_Load(object sender, EventArgs e)
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void MainForm_Load(object? sender, EventArgs e)
         {
+            dataGridView1.ReadOnly = true;
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridView1.MultiSelect = false;
             RefreshGrid();
         }
+
         /// <summary>
-        /// Обновляет содержимое таблицы счетов в зависимости от выбранного режима
-        /// отображения (активные или удалённые счета).
+        /// Обновляет данные в таблице, отображая счета в соответствии с состоянием флага "Показать удалённые".
         /// </summary>
         private void RefreshGrid()
         {
-            dataGridView1.DataSource = null;
-            dataGridView1.DataSource = chkShowDeleted.Checked
-                ? logic.GetDeletedAccount()
-                : logic.GetActiveAccount();
+            Run(() =>
+            {
+                var accounts = _repository.ReadAll()
+                    .Where(a => a.isDeleted == chkShowDeleted.Checked)
+                    .ToList();
+
+                dataGridView1.DataSource = null;
+                dataGridView1.DataSource = accounts;
+                ConfigureColumns();
+            });
         }
         /// <summary>
-        /// Обрабатывает нажатие кнопки "Создать": считывает данные из полей ввода,
-        /// создаёт новый банковский счёт и добавляет его в список.
+        /// Настраивает отображение столбцов в таблице, скрывая ненужные и задавая понятные заголовки.
         /// </summary>
-        /// <param name="sender">Источник события (кнопка)</param>
-        /// <param name="e">Данные события</param>
-        private void btnCreate_Click(object sender, EventArgs e)
+        private void ConfigureColumns()
         {
-            
+            // Навигационные свойства Dapper не заполняет — столбцы в таблице не нужны.
+            foreach (var name in new[] { "Type_BankAccount", "Account" })
+                if (dataGridView1.Columns.Contains(name))
+                    dataGridView1.Columns[name]!.Visible = false;
 
-            string accountNumber = txtAccountNumber.Text;
-            string ownerName = txtOwnerName.Text;
-
-            if (string.IsNullOrWhiteSpace(accountNumber) || string.IsNullOrWhiteSpace(ownerName))
+            var headers = new Dictionary<string, string>
             {
-                MessageBox.Show("Заполните все поля!");
+                ["Id"] = "ID",
+                ["number"] = "Номер счёта",
+                ["id_type"] = "Тип счёта",
+                ["id_owner"] = "ID владельца",
+                ["date_create"] = "Дата открытия",
+                ["balance"] = "Баланс",
+                ["isActiv"] = "Активен",
+                ["isDeleted"] = "Удалён",
+            };
+            foreach (var (name, header) in headers)
+                if (dataGridView1.Columns.Contains(name))
+                    dataGridView1.Columns[name]!.HeaderText = header;
+        }
+        /// <summary>
+        /// Выполняет указанное действие с обработкой исключений, связанных с базой данных.
+        /// </summary>
+        /// <param name="action">Действие для выполнения.</param>
+        /// <returns>True, если действие выполнено успешно; иначе — False.</returns>
+        private bool Run(Action action)
+        {
+            try
+            {
+                action();
+                return true;
+            }
+            catch (SqlException ex) when (ex.Number == 547)   // нарушение внешнего ключа
+            {
+                MessageBox.Show("Владельца с таким ID не существует. Допустимые ID: 1–5.");
+                return false;
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Ошибка базы данных: " + ex.Message);
+                return false;
+            }
+        }
+        /// <summary>
+        /// Обработчик события нажатия кнопки "Создать". Создает новый банковский счет с указанными номером и ID владельца.
+        /// </summary>
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+
+        private void btnCreate_Click(object? sender, EventArgs e)
+        {
+            string number = txtAccountNumber.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(number) || string.IsNullOrWhiteSpace(txtOwnerName.Text))
+            {
+                MessageBox.Show("Заполните номер счёта и ID владельца!");
+                return;
+            }
+            if (number.Length > 20 || !number.All(char.IsDigit))
+            {
+                MessageBox.Show("Номер счёта — только цифры, не длиннее 20 символов.");
+                return;
+            }
+            if (!int.TryParse(txtOwnerName.Text, out int ownerId) || ownerId <= 0)
+            {
+                MessageBox.Show("ID владельца должен быть положительным числом.");
                 return;
             }
 
-            var newAccount = new BankAccount(accountNumber, ownerName, 0m);
-            logic.AddAccount(newAccount);
+            Run(() =>
+            {
+            if (_repository.ReadAll().Any(a => a.number.Trim() == number))
+                {
+                    MessageBox.Show("Счёт с таким номером уже существует.");
+                    return;
+                }
 
-            RefreshGrid();
+                _repository.Add(new BankAccount
+                {
+                    number = number,
+                    id_owner = ownerId,
+                    id_type = 1,                 // 1 = «Текущий» из справочника Type_BankAccount
+                    balance = 0m,
+                    date_create = DateTime.Today,
+                    isActiv = true,
+                    isDeleted = false
+                });
 
-            txtAccountNumber.Clear();
-            txtOwnerName.Clear();
+                txtAccountNumber.Clear();
+                txtOwnerName.Clear();
+                RefreshGrid();
+            });
         }
-        /// <summary>
-        /// Обрабатывает нажатие кнопки "Изменить владельца": заменяет ФИО владельца
-        /// у счёта, выбранного в таблице, на введённое пользователем значение.
-        /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void btnEditOwner_Click(object sender, EventArgs e)
-        {
 
-            if (SelectedAccount == null)
+        /// <summary>
+        /// Обработчик события нажатия кнопки "Изменить владельца". Изменяет ID владельца выбранного банковского счета.
+        /// </summary>
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void btnEditOwner_Click(object? sender, EventArgs e)
+        {
+            var account = SelectedAccount;
+            if (account == null)
             {
                 MessageBox.Show("Выберите счёт в таблице.");
                 return;
             }
-
-            string newOwner = txtNewOwner.Text;
-            if (string.IsNullOrWhiteSpace(newOwner))
+            if (!int.TryParse(txtNewOwner.Text, out int newOwnerId) || newOwnerId <= 0)
             {
-                MessageBox.Show("Введите новое имя владельца.");
+                MessageBox.Show("Введите корректный ID нового владельца.");
                 return;
             }
 
-            if (logic.EditAccountOwner(SelectedAccount.AccountNumber, newOwner))
+            account.id_owner = newOwnerId;
+            if (Run(() => _repository.Update(account)))
             {
-                RefreshGrid();
                 txtNewOwner.Clear();
-            }
-            else
-            {
-                MessageBox.Show("Не удалось изменить владельца.");
+                RefreshGrid();
             }
         }
         /// <summary>
-        /// Обрабатывает нажатие кнопки "Удалить": помечает выбранный в таблице счёт
-        /// как удалённый, если его баланс равен нулю.
+        /// Обработчик события нажатия кнопки "Удалить". Выполняет мягкое удаление выбранного банковского счета, если его баланс равен нулю.
         /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void btnDelete_Click(object sender, EventArgs e)
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void btnDelete_Click(object? sender, EventArgs e)
         {
-            if (SelectedAccount == null)
+            var account = SelectedAccount;
+            if (account == null)
             {
                 MessageBox.Show("Выберите счёт в таблице.");
                 return;
             }
-
-            if (logic.RemoveAccount(SelectedAccount.AccountNumber))
-            {
-                RefreshGrid();
-            }
-            else
+            if (account.balance != 0)
             {
                 MessageBox.Show("Нельзя удалить счёт с ненулевым балансом.");
-            }
-        }
-        /// <summary>
-        /// Обрабатывает нажатие кнопки "Восстановить": возвращает выбранный в таблице
-        /// удалённый счёт в список активных.
-        /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void btnRestore_Click(object sender, EventArgs e)
-        {
-            if (SelectedAccount == null)
-            {
-                MessageBox.Show("Выберите удалённый счёт в таблице.");
                 return;
             }
 
-            if (logic.RestoreAccountByNumber(SelectedAccount.AccountNumber))
-            {
+            // «Мягкое» удаление: строка остаётся в БД с флагом isDeleted
+            account.isDeleted = true;
+            account.isActiv = false;
+            if (Run(() => _repository.Update(account)))
                 RefreshGrid();
-            }
-            else
-            {
-                MessageBox.Show("Не удалось восстановить счёт.");
-            }
         }
-
         /// <summary>
-        /// Обрабатывает нажатие кнопки "Заморозить/Разморозить": переключает статус
-        /// активности выбранного в таблице счёта на противоположный.
+        /// Обработчик события нажатия кнопки "Восстановить". Восстанавливает удалённый банковский счет, делая его активным.    
         /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void btnFreezeToggle_Click(object sender, EventArgs e)
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void btnRestore_Click(object? sender, EventArgs e)
         {
-            if (SelectedAccount == null)
+            var account = SelectedAccount;
+            if (account == null || !account.isDeleted)
+            {
+                MessageBox.Show("Отметьте «Показать удалённые» и выберите удалённый счёт.");
+                return;
+            }
+
+            account.isDeleted = false;
+            account.isActiv = true;
+            if (Run(() => _repository.Update(account)))
+                RefreshGrid();
+        }
+        /// <summary>
+        /// Обработчик события нажатия кнопки "Заморозить/Разморозить". Переключает состояние активности выбранного банковского счета.
+        /// </summary>
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void btnFreezeToggle_Click(object? sender, EventArgs e)
+        {
+            var account = SelectedAccount;
+            if (account == null)
             {
                 MessageBox.Show("Выберите счёт в таблице.");
                 return;
             }
 
-            if (SelectedAccount.IsActive)
-                logic.FreezeAccountNumber(SelectedAccount.AccountNumber);
-            else
-                logic.UnfreezeAccountNumber(SelectedAccount.AccountNumber);
+            // FreezeAccount/UnfreezeAccount уже есть в сущности, репозиторий лишь сохраняет результат
+            if (account.isActiv) account.FreezeAccount();
+            else account.UnfreezeAccount();
 
-            RefreshGrid();
+            if (Run(() => _repository.Update(account)))
+                RefreshGrid();
         }
         /// <summary>
-        /// Обрабатывает нажатие кнопки "Перевести": выполняет перевод указанной суммы
-        /// с выбранного в таблице счёта на счёт с введённым номером получателя.
+        ///     Обработчик события нажатия кнопки "Перевести". Выполняет перевод средств с выбранного банковского счета на указанный счет-получатель.
         /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события</param>
-        private void btnTransfer_Click(object sender, EventArgs e)
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void btnTransfer_Click(object? sender, EventArgs e)
         {
-            if (SelectedAccount == null)
+            var sender_ = SelectedAccount;
+            if (sender_ == null)
             {
                 MessageBox.Show("Выберите счёт-отправитель в таблице.");
                 return;
             }
+            if (!decimal.TryParse(txtAmount.Text, out decimal amount) || amount <= 0)
+            {
+                MessageBox.Show("Введите корректную положительную сумму.");
+                return;
+            }
 
-            var target = logic.GetAccount(txtTargetAccount.Text);
+            string targetNumber = txtTargetAccount.Text.Trim();
+
+            Run(() =>
+            {
+            var target = _repository.ReadAll()
+                .FirstOrDefault(a => a.number.Trim() == targetNumber && !a.isDeleted);
+
             if (target == null)
             {
                 MessageBox.Show("Счёт-получатель не найден.");
                 return;
-            }
+                }
+                if (target.Id == sender_.Id)
+                {
+                    MessageBox.Show("Нельзя перевести самому себе.");
+                    return;
+                }
+                if (!sender_.isActiv || !target.isActiv)
+                {
+                    MessageBox.Show("Один из счетов заморожен.");
+                    return;
+                }
+                if (!sender_.Withdraw(amount))
+                {
+                    MessageBox.Show("Недостаточно средств на счёте.");
+                    return;
+                }
 
-            if (target.AccountNumber == SelectedAccount.AccountNumber)
-            {
-                MessageBox.Show("Нельзя перевести самому себе.");
-                return;
-            }
+                target.balance += amount;
+                _repository.Update(sender_);
+                _repository.Update(target);
 
-            if (!decimal.TryParse(txtAmount.Text, out decimal amount))
-            {
-                MessageBox.Show("Введите корректную сумму.");
-                return;
-            }
-
-            if (logic.Transfer(SelectedAccount, target, amount))
-            {
-                RefreshGrid();
                 txtTargetAccount.Clear();
                 txtAmount.Clear();
-            }
-            else
-            {
-                MessageBox.Show("Перевод не выполнен — проверьте баланс и статус счетов.");
-            }
+                RefreshGrid();
+            });
         }
         /// <summary>
-        /// Обрабатывает клик по ячейке таблицы счетов.
+        /// Обработчик события нажатия на ячейку таблицы. В текущей реализации не выполняет никаких действий, но может быть расширен для обработки кликов по ячейкам.
         /// </summary>
-        /// <param name="sender">Источник события</param>
-        /// <param name="e">Данные события с информацией о выбранной ячейке</param>
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        /// <param name="sender">Источник события.</param>
+        /// <param name="e">Параметры события.</param>
+        private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
-
         }
-        /// <summary>
-        /// Возвращает банковский счёт, выбранный в данный момент в таблице,
-        /// или null, если ни одна строка не выбрана.
-        /// </summary>
-        private void btnFreezeToggle_Click_1(object sender, EventArgs e)
-        {
-
-        }
-
-
-        /// <summary>
-        /// Возвращает банковский счёт, выбранный в данный момент в таблице,
-        /// </summary>
-        private BankAccount? SelectedAccount =>
-        dataGridView1.CurrentRow?.DataBoundItem as BankAccount;
     }
 }

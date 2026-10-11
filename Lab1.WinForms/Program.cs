@@ -1,4 +1,5 @@
-using System.Windows.Forms;
+using Lab1.DataAccessLayer;
+using Lab1.Model.ModelsDB;
 
 namespace Lab1.WinForms
 {
@@ -10,7 +11,13 @@ namespace Lab1.WinForms
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+
+            // Сценарий №2 из методички: работа с БД через Dapper.
+            IRepository<BankAccount> repository = new DapperRepository<BankAccount>(
+    @"Server=.\SQLEXPRESS;Database=dbDataBank;Trusted_Connection=True;TrustServerCertificate=True;",
+    "BankAccount");
+
+            Application.Run(new MainForm(repository));
         }
     }
 }
