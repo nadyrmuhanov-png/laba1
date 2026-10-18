@@ -1,20 +1,19 @@
-using Lab1.DataAccessLayer;
+using Lab1.BusinessLogic;
 using Lab1.Model.ModelsDB;
-using Microsoft.Data.SqlClient;
 
 namespace Lab1.WinForms
-{   public partial class MainForm : Form
+{
+    public partial class MainForm : Form
     {
-        /// <summary>Форма для работы с банковскими счетами.</summary>
-        private readonly IRepository<BankAccount> _repository;
-        /// <summary>
-        /// Инициализирует форму с указанным репозиторием для работы с банковскими счетами.
-        /// </summary>
-        /// <param name="repository">Репозиторий для работы с банковскими счетами.</param>
-        public MainForm(IRepository<BankAccount> repository)
-        {
-            _repository = repository;
+       /// <summary>
+       /// Экземпляр Logic, используемый для выполнения логических операций.
+       /// </summary>
+       /// <remarks>Инициализируется при объявлении и остаётся неизменным на протяжении жизни экземпляра
+       /// содержащего типа.</remarks>
+        private readonly Logic _logic = new Logic();
 
+        public MainForm()
+        {
             InitializeComponent();
             Load += MainForm_Load;
             btnCreate.Click += btnCreate_Click;
@@ -26,14 +25,12 @@ namespace Lab1.WinForms
             chkShowDeleted.CheckedChanged += (s, e) => RefreshGrid();
         }
 
-        /// <summary>Счёт, выбранный в таблице (или null).</summary>
+        /// <summary>
+        /// Получает выбранный в таблице счёт (или null).
+        /// </summary>
         private BankAccount? SelectedAccount =>
             dataGridView1.CurrentRow?.DataBoundItem as BankAccount;
-        /// <summary>
-        /// Обработчик события загрузки формы. Настраивает таблицу и обновляет данные.
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+
         private void MainForm_Load(object? sender, EventArgs e)
         {
             dataGridView1.ReadOnly = true;
@@ -42,28 +39,30 @@ namespace Lab1.WinForms
             RefreshGrid();
         }
 
-        /// <summary>
-        /// Обновляет данные в таблице, отображая счета в соответствии с состоянием флага "Показать удалённые".
-        /// </summary>
+       /// <summary>
+       /// Обновляет содержимое dataGridView1 списком счетов, получаемых из _logic.GetAccounts с учётом состояния
+       /// chkShowDeleted, сбрасывает DataSource и перенастраивает столбцы.
+       /// </summary>
+       /// <remarks>Исключения при загрузке перехватываются и отображаются пользователю через MessageBox с
+       /// текстом базовой ошибки.</remarks>
         private void RefreshGrid()
         {
-            Run(() =>
+            try
             {
-                var accounts = _repository.ReadAll()
-                    .Where(a => a.isDeleted == chkShowDeleted.Checked)
-                    .ToList();
-
+                var accounts = _logic.GetAccounts(chkShowDeleted.Checked);
                 dataGridView1.DataSource = null;
                 dataGridView1.DataSource = accounts;
                 ConfigureColumns();
-            });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось загрузить счета: " + ex.GetBaseException().Message);
+            }
         }
-        /// <summary>
-        /// Настраивает отображение столбцов в таблице, скрывая ненужные и задавая понятные заголовки.
-        /// </summary>
+
         private void ConfigureColumns()
         {
-            // Навигационные свойства Dapper не заполняет — столбцы в таблице не нужны.
+            
             foreach (var name in new[] { "Type_BankAccount", "Account" })
                 if (dataGridView1.Columns.Contains(name))
                     dataGridView1.Columns[name]!.Visible = false;
@@ -82,86 +81,54 @@ namespace Lab1.WinForms
             foreach (var (name, header) in headers)
                 if (dataGridView1.Columns.Contains(name))
                     dataGridView1.Columns[name]!.HeaderText = header;
-        }
-        /// <summary>
-        /// Выполняет указанное действие с обработкой исключений, связанных с базой данных.
-        /// </summary>
-        /// <param name="action">Действие для выполнения.</param>
-        /// <returns>True, если действие выполнено успешно; иначе — False.</returns>
-        private bool Run(Action action)
-        {
-            try
-            {
-                action();
-                return true;
-            }
-            catch (SqlException ex) when (ex.Number == 547)   // нарушение внешнего ключа
-            {
-                MessageBox.Show("Владельца с таким ID не существует. Допустимые ID: 1–5.");
-                return false;
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show("Ошибка базы данных: " + ex.Message);
-                return false;
-            }
-        }
-        /// <summary>
-        /// Обработчик события нажатия кнопки "Создать". Создает новый банковский счет с указанными номером и ID владельца.
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
 
+            if (dataGridView1.Columns.Contains("number"))
+                dataGridView1.Columns["number"]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+        }
+/// <summary>
+/// Отображает сообщение об ошибке при неуспехе операции и возвращает признак успеха.
+/// </summary>
+/// <remarks>Побочный эффект: при неуспехе отображается MessageBox.</remarks>
+/// <param name="result">Результат операции. При неуспехе отображается значение свойства Message.</param>
+/// <returns>true, если операция успешна; иначе false.</returns>
+        private bool Report(OperationResult result)
+        {
+            if (!result.Success)
+                MessageBox.Show(result.Message);
+            return result.Success;
+        }
+        /// <summary>
+        /// Обрабатывает нажатие кнопки создания счета: проверяет ввод идентификатора владельца, вызывает бизнес-логику
+        /// для создания счета и при успехе обновляет интерфейс.
+        /// </summary>
+        /// <remarks>Форма лишь разбирает ввод; проверку правил выполняет бизнес-логика. При некорректном
+        /// ID владельца отображается сообщение. После успешного создания очищает поля ввода и обновляет
+        /// сетку.</remarks>
+        /// <param name="sender">Объект, инициировавший событие.</param>
+        /// <param name="e">Аргументы события клика.</param>
         private void btnCreate_Click(object? sender, EventArgs e)
         {
-            string number = txtAccountNumber.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(number) || string.IsNullOrWhiteSpace(txtOwnerName.Text))
+            // Форма отвечает только за разбор ввода; правила проверяет бизнес-логика.
+            if (!int.TryParse(txtOwnerName.Text, out int ownerId))
             {
-                MessageBox.Show("Заполните номер счёта и ID владельца!");
-                return;
-            }
-            if (number.Length > 20 || !number.All(char.IsDigit))
-            {
-                MessageBox.Show("Номер счёта — только цифры, не длиннее 20 символов.");
-                return;
-            }
-            if (!int.TryParse(txtOwnerName.Text, out int ownerId) || ownerId <= 0)
-            {
-                MessageBox.Show("ID владельца должен быть положительным числом.");
+                MessageBox.Show("ID владельца должен быть числом.");
                 return;
             }
 
-            Run(() =>
+            if (Report(_logic.AddAccount(txtAccountNumber.Text, ownerId, typeId: 1, initialBalance: 0m)))
             {
-            if (_repository.ReadAll().Any(a => a.number.Trim() == number))
-                {
-                    MessageBox.Show("Счёт с таким номером уже существует.");
-                    return;
-                }
-
-                _repository.Add(new BankAccount
-                {
-                    number = number,
-                    id_owner = ownerId,
-                    id_type = 1,                 // 1 = «Текущий» из справочника Type_BankAccount
-                    balance = 0m,
-                    date_create = DateTime.Today,
-                    isActiv = true,
-                    isDeleted = false
-                });
-
                 txtAccountNumber.Clear();
                 txtOwnerName.Clear();
                 RefreshGrid();
-            });
+            }
         }
-
         /// <summary>
-        /// Обработчик события нажатия кнопки "Изменить владельца". Изменяет ID владельца выбранного банковского счета.
+        /// Изменяет владельца выбранного счёта на указанный идентификатор владельца.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <remarks>Проверяет наличие выбранного счёта и корректность ввода ID; при ошибке отображает
+        /// сообщение, при успешном изменении очищает поле ввода и обновляет таблицу.</remarks>
+        /// <param name="sender">Объект, инициировавший событие.</param>
+        /// <param name="e">Аргументы события.</param>
         private void btnEditOwner_Click(object? sender, EventArgs e)
         {
             var account = SelectedAccount;
@@ -170,24 +137,25 @@ namespace Lab1.WinForms
                 MessageBox.Show("Выберите счёт в таблице.");
                 return;
             }
-            if (!int.TryParse(txtNewOwner.Text, out int newOwnerId) || newOwnerId <= 0)
+            if (!int.TryParse(txtNewOwner.Text, out int newOwnerId))
             {
-                MessageBox.Show("Введите корректный ID нового владельца.");
+                MessageBox.Show("ID нового владельца должен быть числом.");
                 return;
             }
 
-            account.id_owner = newOwnerId;
-            if (Run(() => _repository.Update(account)))
+            if (Report(_logic.ChangeOwner(account.Id, newOwnerId)))
             {
                 txtNewOwner.Clear();
                 RefreshGrid();
             }
         }
         /// <summary>
-        /// Обработчик события нажатия кнопки "Удалить". Выполняет мягкое удаление выбранного банковского счета, если его баланс равен нулю.
+        /// Удаляет выбранный счёт и обновляет таблицу при успешном удалении.
         /// </summary>
+        /// <remarks>Если счёт не выбран, отображается сообщение с просьбой выбрать счёт. Удаление
+        /// выполняется через слой логики; при успешном результате выполняется обновление представления.</remarks>
         /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="e">Аргументы события.</param>
         private void btnDelete_Click(object? sender, EventArgs e)
         {
             var account = SelectedAccount;
@@ -196,42 +164,39 @@ namespace Lab1.WinForms
                 MessageBox.Show("Выберите счёт в таблице.");
                 return;
             }
-            if (account.balance != 0)
-            {
-                MessageBox.Show("Нельзя удалить счёт с ненулевым балансом.");
-                return;
-            }
 
-            // «Мягкое» удаление: строка остаётся в БД с флагом isDeleted
-            account.isDeleted = true;
-            account.isActiv = false;
-            if (Run(() => _repository.Update(account)))
+            if (Report(_logic.DeleteAccount(account.Id)))
                 RefreshGrid();
         }
-        /// <summary>
-        /// Обработчик события нажатия кнопки "Восстановить". Восстанавливает удалённый банковский счет, делая его активным.    
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+      /// <summary>
+      /// Восстанавливает выбранный удалённый счёт; при отсутствии выбора показывает информационное сообщение; при
+      /// успешном восстановлении обновляет сетку.
+      /// </summary>
+      /// <remarks>Вызывает _logic.RestoreAccount и проверяет результат через Report; при успехе вызывает
+      /// RefreshGrid. Если SelectedAccount равен null, показывает MessageBox с инструкцией: «Отметьте «Показать
+      /// удалённые» и выберите удалённый счёт.»</remarks>
+      /// <param name="sender">Источник события, инициировавшего клик.</param>
+      /// <param name="e">Аргументы события клика.</param>
         private void btnRestore_Click(object? sender, EventArgs e)
         {
             var account = SelectedAccount;
-            if (account == null || !account.isDeleted)
+            if (account == null)
             {
                 MessageBox.Show("Отметьте «Показать удалённые» и выберите удалённый счёт.");
                 return;
             }
 
-            account.isDeleted = false;
-            account.isActiv = true;
-            if (Run(() => _repository.Update(account)))
+            if (Report(_logic.RestoreAccount(account.Id)))
                 RefreshGrid();
         }
-        /// <summary>
-        /// Обработчик события нажатия кнопки "Заморозить/Разморозить". Переключает состояние активности выбранного банковского счета.
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+      /// <summary>
+      /// Переключает состояние заморозки выбранного счёта и при успешном выполнении обновляет таблицу.
+      /// </summary>
+      /// <remarks>Если счёт не выбран, отображает сообщение «Выберите счёт в таблице». Иначе вызывает
+      /// _logic.ToggleFreeze(account.Id) и при успешном результате обновляет представление вызовом
+      /// RefreshGrid().</remarks>
+      /// <param name="sender">Источник события.</param>
+      /// <param name="e">Аргументы события.</param>
         private void btnFreezeToggle_Click(object? sender, EventArgs e)
         {
             var account = SelectedAccount;
@@ -241,74 +206,46 @@ namespace Lab1.WinForms
                 return;
             }
 
-            // FreezeAccount/UnfreezeAccount уже есть в сущности, репозиторий лишь сохраняет результат
-            if (account.isActiv) account.FreezeAccount();
-            else account.UnfreezeAccount();
-
-            if (Run(() => _repository.Update(account)))
+            if (Report(_logic.ToggleFreeze(account.Id)))
                 RefreshGrid();
         }
         /// <summary>
-        ///     Обработчик события нажатия кнопки "Перевести". Выполняет перевод средств с выбранного банковского счета на указанный счет-получатель.
+        /// Выполняет перевод средств с выбранного счёта на указанный целевой счёт и обновляет интерфейс при успешной
+        /// операции.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <remarks>Проверяет наличие выбранного счёта и корректность введённой суммы; вызывает
+        /// _logic.Transfer; при успешной операции очищает поля ввода и обновляет таблицу.</remarks>
+        /// <param name="sender">Источник события, обычно элемент управления (например, кнопка), инициировавший клик.</param>
+        /// <param name="e">Аргументы события Click.</param>
         private void btnTransfer_Click(object? sender, EventArgs e)
         {
-            var sender_ = SelectedAccount;
-            if (sender_ == null)
+            var account = SelectedAccount;
+            if (account == null)
             {
                 MessageBox.Show("Выберите счёт-отправитель в таблице.");
                 return;
             }
-            if (!decimal.TryParse(txtAmount.Text, out decimal amount) || amount <= 0)
+            if (!decimal.TryParse(txtAmount.Text, out decimal amount))
             {
-                MessageBox.Show("Введите корректную положительную сумму.");
+                MessageBox.Show("Введите корректную сумму.");
                 return;
             }
 
-            string targetNumber = txtTargetAccount.Text.Trim();
-
-            Run(() =>
+            if (Report(_logic.Transfer(account.Id, txtTargetAccount.Text, amount)))
             {
-            var target = _repository.ReadAll()
-                .FirstOrDefault(a => a.number.Trim() == targetNumber && !a.isDeleted);
-
-            if (target == null)
-            {
-                MessageBox.Show("Счёт-получатель не найден.");
-                return;
-                }
-                if (target.Id == sender_.Id)
-                {
-                    MessageBox.Show("Нельзя перевести самому себе.");
-                    return;
-                }
-                if (!sender_.isActiv || !target.isActiv)
-                {
-                    MessageBox.Show("Один из счетов заморожен.");
-                    return;
-                }
-                if (!sender_.Withdraw(amount))
-                {
-                    MessageBox.Show("Недостаточно средств на счёте.");
-                    return;
-                }
-
-                target.balance += amount;
-                _repository.Update(sender_);
-                _repository.Update(target);
-
                 txtTargetAccount.Clear();
                 txtAmount.Clear();
                 RefreshGrid();
-            });
+            }
         }
         /// <summary>
-        /// Обработчик события нажатия на ячейку таблицы. В текущей реализации не выполняет никаких действий, но может быть расширен для обработки кликов по ячейкам.
+        /// Обрабатывает щелчок по содержимому ячейки в DataGridView.
+        /// Обрабатывает щелчок по содержимому ячейки в DataGridView.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <remarks>Проверять e.RowIndex и e.ColumnIndex на значение -1 (заголовки или некорректная
+        /// ячейка) перед доступом к данным.</remarks>
+        /// <param name="sender">Источник события, обычно сам DataGridView.</param>
+        /// <param name="e">Аргументы события с индексами столбца (ColumnIndex) и строки (RowIndex) целевой ячейки.</param>
         private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
         }

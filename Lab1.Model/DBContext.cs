@@ -46,8 +46,8 @@ namespace Lab1.Model
         {
 
             optionsBuilder
-                //Для подключения бд изменить Server=paymch\\SQLEXPRESS на ядро которое установлено на пк
-                .UseSqlServer("Server=paymch\\SQLEXPRESS;Database=dbDataBank;Trusted_Connection=True;Persist Security Info=False;Encrypt=True;TrustServerCertificate=true;");
+                
+                .UseSqlServer("Server=localhost\\SQLEXPRESS;Database=dbDataBank;Trusted_Connection=True;Persist Security Info=False;Encrypt=True;TrustServerCertificate=True;");
         }
     }
 }

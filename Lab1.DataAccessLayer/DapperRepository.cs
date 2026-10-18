@@ -114,34 +114,44 @@ namespace Lab1.DataAccessLayer
         /// <param name="entity">Объект типа T для добавления.</param>
         public void Add(T entity)
         {
-            var columns = string.Join(", ", DataProps.Select(ColumnOf));
-            var values = string.Join(", ", DataProps.Select(p => "@" + p.Name));
+            string sql = @"
+                INSERT INTO BankAccount (number, id_type, id_owner, date_create, balance, isActiv, isDeleted)
+                OUTPUT INSERTED.id_bankAccount
+                VALUES (@number, @id_type, @id_owner, @date_create, @balance, @isActiv, @isDeleted)";
 
             using var db = CreateConnection();
-            // OUTPUT возвращает id, который сгенерировала БД, и мы кладём его обратно в объект
-            entity.Id = db.ExecuteScalar<int>(
-                $"INSERT INTO {_tableName} ({columns}) OUTPUT INSERTED.{IdColumn} VALUES ({values})",
-                entity);
+            entity.Id = db.ExecuteScalar<int>(sql, entity);
         }
         /// <summary>
-        /// Обновляет существующий объект типа T в базе данных.
+        /// Обновляет запись BankAccount в базе данных по идентификатору, устанавливая поля из переданного объекта.
         /// </summary>
-        /// <param name="entity">Объект типа T для обновления.</param>
+        /// <remarks>Выполняет SQL UPDATE через Dapper; соединение создаётся через CreateConnection и
+        /// автоматически закрывается. Параметры SQL сопоставляются с именами свойств объекта.</remarks>
+        /// <param name="entity">Объект с данными для обновления; должен содержать свойства, соответствующие параметрам SQL (включая Id).</param>
         public void Update(T entity)
         {
-            var set = string.Join(", ", DataProps.Select(p => $"{ColumnOf(p)} = @{p.Name}"));
+            string sql = @"
+                UPDATE BankAccount
+                SET number = @number, id_type = @id_type, id_owner = @id_owner,
+                    date_create = @date_create, balance = @balance,
+                    isActiv = @isActiv, isDeleted = @isDeleted
+                WHERE id_bankAccount = @Id";
 
             using var db = CreateConnection();
-            db.Execute($"UPDATE {_tableName} SET {set} WHERE {IdColumn} = @Id", entity);
+            db.Execute(sql, entity);
         }
         /// <summary>
-        /// Удаляет объект типа T с указанным идентификатором из базы данных.
+        /// Удаляет запись банковского счёта с указанным идентификатором.
         /// </summary>
-        /// <param name="id">Идентификатор объекта для удаления.</param>
+        /// <remarks>Выполняет непосредственное удаление через SQL; не проверяет существование записи и не
+        /// использует транзакцию.</remarks>
+        /// <param name="id">Идентификатор удаляемой записи банковского счёта.</param>
         public void Delete(int id)
         {
+            string sql = "DELETE FROM BankAccount WHERE id_bankAccount = @Id";
+
             using var db = CreateConnection();
-            db.Execute($"DELETE FROM {_tableName} WHERE {IdColumn} = @Id", new { Id = id });
+            db.Execute(sql, new { Id = id });
         }
     }
 }
