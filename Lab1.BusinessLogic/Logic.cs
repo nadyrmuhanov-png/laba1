@@ -25,20 +25,8 @@ namespace Lab1.BusinessLogic
        
         private readonly IRepository<BankAccount> repository;
 
-        /// <summary>
-        /// Строка подключения к базе данных, получаемая из переменной окружения LAB1_DB или, при её отсутствии,
-        /// используемая значение по умолчанию.
-        /// </summary>
        
-        private static string ConnectionString =>
-            Environment.GetEnvironmentVariable("LAB1_DB")
-            ?? @"Server=.\SQLEXPRESS;Database=dbDataBank;Trusted_Connection=True;TrustServerCertificate=True;";
-
-        /// <summary>По умолчанию — сценарий Dapper. Чтобы переключиться на EF, замените правую часть
-        /// на new EntityRepository&lt;BankAccount&gt;(new DBContext()).</summary>
-        public Logic() : this(new DapperRepository<BankAccount>(ConnectionString, "BankAccount"))
-        {
-        }
+       
 
         /// <summary>Любой репозиторий, реализующий IRepository, можно передать снаружи.</summary>
         public Logic(IRepository<BankAccount> repository)
@@ -46,11 +34,15 @@ namespace Lab1.BusinessLogic
             this.repository = repository;
         }
 
-       /// <summary>
-       /// Возвращает список банковских счетов, у которых свойство isDeleted соответствует заданному значению.
-       /// </summary>
-       /// <param name="deleted">true — вернуть удалённые счета; false — вернуть активные счета.</param>
-       /// <returns>Список объектов BankAccount, отфильтрованный по признаку isDeleted.</returns>
+        public Logic() : this(new DapperRepository<BankAccount>())
+        {
+        }
+
+        /// <summary>
+        /// Возвращает список банковских счетов, у которых свойство isDeleted соответствует заданному значению.
+        /// </summary>
+        /// <param name="deleted">true — вернуть удалённые счета; false — вернуть активные счета.</param>
+        /// <returns>Список объектов BankAccount, отфильтрованный по признаку isDeleted.</returns>
         public List<BankAccount> GetAccounts(bool deleted) =>
             repository.ReadAll().Where(a => a.isDeleted == deleted).ToList();
 

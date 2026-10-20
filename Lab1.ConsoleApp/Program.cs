@@ -9,8 +9,8 @@ class ConsoleApp
     /// Экземпляр Logic, настроенный с EntityRepository<BankAccount> и DBContext, обеспечивает бизнес-операции над
     /// банковскими счетами.
     /// </summary>
-    
-    private readonly Logic _logic = new Logic(new EntityRepository<BankAccount>(new DBContext()));
+
+    private readonly Logic _logic = new Logic(new EntityRepository<BankAccount>());
 
     /// <summary>
     /// Фокусируемый банковский счёт, допускающий значение null.

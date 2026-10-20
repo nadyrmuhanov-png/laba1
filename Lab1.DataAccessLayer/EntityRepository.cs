@@ -31,6 +31,13 @@ namespace Lab1.DataAccessLayer
             _dbSet = _context.Set<T>();
         }
         /// <summary>
+        /// Создаёт экземпляр EntityRepository, используя новый экземпляр DBContext.
+        /// </summary>
+        /// <remarks>Делегирует выполнение другому конструктору, принимающему DBContext.</remarks>
+        public EntityRepository() : this(new DBContext())
+        {
+        }
+        /// <summary>
         /// Добавляет новый объект типа T в базу данных.
         /// </summary>
         /// <param name="item">Объект типа T, который нужно добавить.</param>

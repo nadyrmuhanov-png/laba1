@@ -44,10 +44,7 @@ namespace Lab1.Model
         /// <param name="optionsBuilder">Строитель параметров конфигурации.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
-            optionsBuilder
-                
-                .UseSqlServer("Server=localhost\\SQLEXPRESS;Database=dbDataBank;Trusted_Connection=True;Persist Security Info=False;Encrypt=True;TrustServerCertificate=True;");
+            optionsBuilder.UseSqlServer(DbConfig.ConnectionString);
         }
     }
 }
