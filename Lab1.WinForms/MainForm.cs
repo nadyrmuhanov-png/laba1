@@ -1,20 +1,31 @@
 using Lab1.BusinessLogic;
 using Lab1.Model.ModelsDB;
+using Ninject;
 
 namespace Lab1.WinForms
 {
     public partial class MainForm : Form
     {
-       /// <summary>
-       /// Экземпляр Logic, используемый для выполнения логических операций.
-       /// </summary>
-       /// <remarks>Инициализируется при объявлении и остаётся неизменным на протяжении жизни экземпляра
-       /// содержащего типа.</remarks>
-        private readonly Logic _logic = new Logic();
+        /// <summary>
+        /// Экземпляр Logic, используемый для выполнения логических операций.
+        /// </summary>
+        /// <remarks>Инициализируется при объявлении и остаётся неизменным на протяжении жизни экземпляра
+        /// содержащего типа.</remarks>
+        private readonly Logic _logic;
 
         public MainForm()
         {
+
             InitializeComponent();
+            // 1. Создаем ядро Ninject и передаем ему наш модуль конфигурации
+            IKernel ninjectKernel = new StandardKernel(new SimpleConfigModule());
+
+            // 2. Получаем готовый объект Logic через контейнер 
+            // (Ninject автоматически внедрит настроенный репозиторий-синглтон в конструктор Logic)
+            _logic = ninjectKernel.Get<Logic>();
+
+           
+            
             Load += MainForm_Load;
             btnCreate.Click += btnCreate_Click;
             btnEditOwner.Click += btnEditOwner_Click;

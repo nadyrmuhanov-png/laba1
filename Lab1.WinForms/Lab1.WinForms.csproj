@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
+	  <PackageReference Include="Ninject" Version="3.3.6" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\Lab1.BusinessLogic\Lab1.BusinessLogic.csproj" />
 		<ProjectReference Include="..\Lab1.Model\Lab1.Model.csproj" />
 	</ItemGroup>

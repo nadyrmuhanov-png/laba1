@@ -2,15 +2,26 @@
 using Lab1.DataAccessLayer;
 using Lab1.Model;
 using Lab1.Model.ModelsDB;
+using Ninject;
 
 class ConsoleApp
 {
     /// <summary>
-    /// Экземпляр Logic, настроенный с EntityRepository<BankAccount> и DBContext, обеспечивает бизнес-операции над
-    /// банковскими счетами.
+    /// 
     /// </summary>
 
-    private readonly Logic _logic = new Logic(new EntityRepository<BankAccount>());
+    private readonly Logic _logic;
+    /// <summary>
+    /// 
+    /// </summary>
+    public ConsoleApp()
+    {
+        // Создаем ядро Ninject с нашим модулем
+        IKernel ninjectKernel = new StandardKernel(new SimpleConfigModule());
+
+        // Внедряем зависимость через контейнер
+        _logic = ninjectKernel.Get<Logic>();
+    }
 
     /// <summary>
     /// Фокусируемый банковский счёт, допускающий значение null.

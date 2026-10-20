@@ -34,9 +34,7 @@ namespace Lab1.BusinessLogic
             this.repository = repository;
         }
 
-        public Logic() : this(new DapperRepository<BankAccount>())
-        {
-        }
+       
 
         /// <summary>
         /// Возвращает список банковских счетов, у которых свойство isDeleted соответствует заданному значению.
