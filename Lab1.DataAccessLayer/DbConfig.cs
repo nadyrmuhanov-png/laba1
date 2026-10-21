@@ -1,4 +1,4 @@
-﻿namespace Lab1.Model
+﻿namespace Lab1.DataAccessLayer
 {
     /// <summary>Единое место для строки подключения к БД (используют и EF, и Dapper).</summary>
     public static class DbConfig

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace Lab1.Model
+namespace Lab1.DataAccessLayer
 {
     public class DBContext : DbContext
     {

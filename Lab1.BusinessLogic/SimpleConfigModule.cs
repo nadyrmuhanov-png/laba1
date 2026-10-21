@@ -1,5 +1,6 @@
 ﻿using Lab1.DataAccessLayer;
 using Lab1.Model.ModelsDB;
+using Microsoft.EntityFrameworkCore;
 using Ninject.Modules;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace Lab1.BusinessLogic
             // Связываем интерфейс репозитория с EntityFramework-реализацией
             // И делаем его синглтоном (.InSingletonScope())
             Bind<IRepository<BankAccount>>().To<EntityRepository<BankAccount>>().InSingletonScope();
+
+            Bind<DbContext>().To<DBContext>().InSingletonScope();
         }
     }
 }
