@@ -1,106 +1,261 @@
-﻿using Dapper;
-using Lab1.Model;
+﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations.Schema;
+using Dapper;
 using Microsoft.Data.SqlClient;
+using Lab1.Model;
 
 namespace Lab1.DataAccessLayer
 {
-    /// <summary>
-    /// Репозиторий, реализующий CRUD-операции с использованием Dapper для объектов, соответствующих записям таблицы
-    /// BankAccount.
+    ///<summary>
+    /// Репозиторий для выполнения CRUD-операций с сущностями с помощью Dapper.
     /// </summary>
-   
-    public class DapperRepository<T> : IRepository<T> where T : class, IDomainObject
+    /// <typeparam name="T">Тип сущности, реализующей <see cref="IDomainObject"/>.</typeparam>
+    public class DapperRepository<T> : IRepository<T>
+        where T : class, IDomainObject
     {
+      
+        private readonly string connectionString;
+        
+        private readonly string tableName;
+        
+        private readonly List<PropertyInfo> properties;
         /// <summary>
-        /// Строка подключения к базе данных, полученная из DbConfig.
+        /// Создаёт репозиторий и определяет таблицу и свойства сущности,
+        /// которые будут использоваться при работе с базой данных.
         /// </summary>
-    
-        private readonly string _connectionString = DbConfig.ConnectionString;
+        /// <param name="connectionString">Строка подключения к базе данных.</param>
+        public DapperRepository(string connectionString)
+        {
+            this.connectionString = connectionString;
+
+            var tableAttribute =
+                typeof(T).GetCustomAttribute<TableAttribute>();
+
+            tableName = tableAttribute?.Name ?? typeof(T).Name;
+
+            properties = typeof(T).GetProperties()
+                .Where(p => p.CanRead &&
+                            p.CanWrite &&
+                            p.GetIndexParameters().Length == 0 &&
+                            IsSimpleType(p.PropertyType))
+                .ToList();
+        }
+
         /// <summary>
-        /// Создаёт новый SqlConnection, используя строку подключения _connectionString.
+        /// Проверяем, подходит ли тип свойства для хранения в таблице.
         /// </summary>
-        /// <remarks>Вызывающий обязан открыть и освободить соединение (например, через using).</remarks>
-        /// <returns>Экземпляр SqlConnection, инициализированный указанной строкой подключения; соединение не открыто.</returns>
-        private SqlConnection CreateConnection() => new SqlConnection(_connectionString);
+        /// <param name="type">Тип свойства.</param>
+        /// <returns>True, если тип подходит, иначе False.</returns>
+        private bool IsSimpleType(Type type)
+        {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
+            return type.IsPrimitive ||
+                   type.IsEnum ||
+                   type == typeof(string) ||
+                   type == typeof(decimal) ||
+                   type == typeof(DateTime) ||
+                   type == typeof(DateTimeOffset) ||
+                   type == typeof(Guid) ||
+                   type == typeof(TimeSpan) ||
+                   type == typeof(byte[]);
+        }
+
         /// <summary>
-        /// Возвращает все записи таблицы BankAccount в виде последовательности объектов типа T.
+        /// Получаем имя столбца из атрибута Column.
         /// </summary>
-        /// <remarks>Сопоставление колонок с свойствами типа T выполняется по именам (используются алиасы
-        /// колонок, например id_bankAccount AS Id). Подключение создаётся через CreateConnection и закрывается
-        /// автоматически. Запрос выполняется с использованием Dapper.</remarks>
-        /// <returns>IEnumerable<T> с объектами, сопоставленными с результатом SQL-запроса; результат материализуется в List<T>.</returns>
+        /// <param name="property">Свойство, для которого нужно получить имя столбца.</param>
+        /// <returns>Имя столбца.</returns>
+        private string GetColumnName(PropertyInfo property)
+        {
+            var columnAttribute =
+                property.GetCustomAttribute<ColumnAttribute>();
+
+            return columnAttribute?.Name ?? property.Name;
+        }
+
+        /// <summary>
+        /// Защищаем имя таблицы или столбца квадратными скобками.
+        /// </summary>
+        /// <param name="name">Имя таблицы или столбца.</param>
+        /// <returns>Имя с квадратными скобками.</returns>
+        private string SqlName(string name)
+        {
+            return "[" + name.Replace("]", "]]") + "]";
+        }
+
+        /// <summary>
+        /// Находим свойство Id.
+        /// </summary>
+        /// <returns>Свойство, представляющее идентификатор.</returns>
+        private PropertyInfo GetIdProperty()
+        {
+            var idProperty = properties
+                .FirstOrDefault(p => p.Name == "Id");
+
+            if (idProperty == null)
+            {
+                throw new InvalidOperationException(
+                    "У модели " + typeof(T).Name +
+                    " отсутствует свойство Id.");
+            }
+
+            return idProperty;
+        }
+
+        /// <summary>
+        /// Получаем список столбцов для SELECT.
+        /// </summary>
+        /// <returns>Строка с именами столбцов.</returns>
+        private string GetSelectColumns()
+        {
+            return string.Join(", ",
+                properties.Select(p =>
+                    SqlName(GetColumnName(p)) +
+                    " AS " + SqlName(p.Name)));
+        }
+
+        /// <summary>
+        /// Создаёт подключение к базе данных.
+        /// </summary>
+        /// <returns>Новое подключение SQL Server.</returns>
+        private SqlConnection CreateConnection()
+        {
+            return new SqlConnection(connectionString);
+        }
+
+        /// <summary>
+        /// Получает все записи.
+        /// </summary>
+        /// <returns>Перечисление записей.</returns>
         public IEnumerable<T> ReadAll()
         {
-            string sql = @"
-                SELECT id_bankAccount AS Id, number, id_type, id_owner,
-                       date_create, balance, isActiv, isDeleted
-                FROM BankAccount";
+            using (var connection = CreateConnection())
+            {
+                string sql =
+                    "SELECT " + GetSelectColumns() +
+                    " FROM " + SqlName(tableName);
 
-            using var db = CreateConnection();
-            return db.Query<T>(sql).ToList();
+                return connection.Query<T>(sql).ToList();
+            }
         }
-            /// <summary>
-            /// Возвращает запись таблицы BankAccount по её идентификатору.
-            /// </summary>
-            /// <param name="id">Идентификатор записи.</param>
-            /// <returns>Объект типа T, соответствующий записи; или null, если запись не найдена.</returns>
+
+        /// <summary>
+        /// Ищет запись по идентификатору.
+        /// </summary>
+        /// <param name="id">Идентификатор записи.</param>
+        /// <returns>Найденная сущность или <see langword="null"/>, если запись не найдена.</returns>
         public T? ReadById(int id)
         {
-            string sql = @"
-                SELECT id_bankAccount AS Id, number, id_type, id_owner,
-                       date_create, balance, isActiv, isDeleted
-                FROM BankAccount
-                WHERE id_bankAccount = @Id";
+            using (var connection = CreateConnection())
+            {
+                PropertyInfo idProperty = GetIdProperty();
 
-            using var db = CreateConnection();
-            return db.QueryFirstOrDefault<T>(sql, new { Id = id });
+                string idColumn =
+                    SqlName(GetColumnName(idProperty));
+
+                string sql =
+                    "SELECT " + GetSelectColumns() +
+                    " FROM " + SqlName(tableName) +
+                    " WHERE " + idColumn + " = @Id";
+
+                return connection.QueryFirstOrDefault<T>(
+                    sql, new { Id = id });
+            }
         }
+
         /// <summary>
-        /// Вставляет запись банковского счёта в таблицу BankAccount и устанавливает идентификатор вставленной сущности.
+        /// Добавляет новую запись и устанавливает сгенерированный идентификатор сущности.
         /// </summary>
-        /// <remarks>Выполняет INSERT с оператором OUTPUT INSERTED.id_bankAccount и использует
-        /// подключение, создаваемое CreateConnection(), для получения идентификатора через
-        /// ExecuteScalar<int>.</remarks>
-        /// <param name="entity">Сущность банковского счёта для вставки; после выполнения Id устанавливается значением, возвращённым базой
-        /// данных.</param>
-        public void Add(T entity)
+        /// <param name="item">Добавляемая сущность.</param>
+        public void Add(T item)
         {
-            string sql = @"
-                INSERT INTO BankAccount (number, id_type, id_owner, date_create, balance, isActiv, isDeleted)
-                OUTPUT INSERTED.id_bankAccount
-                VALUES (@number, @id_type, @id_owner, @date_create, @balance, @isActiv, @isDeleted)";
+            using (var connection = CreateConnection())
+            {
+                PropertyInfo idProperty = GetIdProperty();
 
-            using var db = CreateConnection();
-            entity.Id = db.ExecuteScalar<int>(sql, entity);
+                var insertProperties = properties
+                    .Where(p => p.Name != "Id")
+                    .ToList();
+
+                string columnNames = string.Join(", ",
+                    insertProperties.Select(p =>
+                        SqlName(GetColumnName(p))));
+
+                string parameterNames = string.Join(", ",
+                    insertProperties.Select(p =>
+                        "@" + p.Name));
+
+                string idColumn =
+                    SqlName(GetColumnName(idProperty));
+
+                string sql =
+                    "INSERT INTO " + SqlName(tableName) +
+                    " (" + columnNames + ") " +
+                    "OUTPUT INSERTED." + idColumn +
+                    " VALUES (" + parameterNames + ")";
+
+                int newId =
+                    connection.ExecuteScalar<int>(sql, item);
+
+                idProperty.SetValue(item, newId);
+            }
         }
+
         /// <summary>
-        /// Обновляет запись банковского счёта в таблице BankAccount.
+        /// Обновляет запись, соответствующую идентификатору сущности.
         /// </summary>
-        /// <param name="entity">Сущность банковского счёта для обновления.</param>
-        public void Update(T entity)
+        /// <param name="item">Сущность с обновлёнными данными.</param>
+        public void Update(T item)
         {
-            string sql = @"
-                UPDATE BankAccount
-                SET number = @number, id_type = @id_type, id_owner = @id_owner,
-                    date_create = @date_create, balance = @balance,
-                    isActiv = @isActiv, isDeleted = @isDeleted
-                WHERE id_bankAccount = @Id";
+            using (var connection = CreateConnection())
+            {
+                PropertyInfo idProperty = GetIdProperty();
 
-            using var db = CreateConnection();
-            db.Execute(sql, entity);
+                var updateProperties = properties
+                    .Where(p => p.Name != "Id")
+                    .ToList();
+
+                string setValues = string.Join(", ",
+                    updateProperties.Select(p =>
+                        SqlName(GetColumnName(p)) +
+                        " = @" + p.Name));
+
+                string idColumn =
+                    SqlName(GetColumnName(idProperty));
+
+                string sql =
+                    "UPDATE " + SqlName(tableName) +
+                    " SET " + setValues +
+                    " WHERE " + idColumn + " = @Id";
+
+                connection.Execute(sql, item);
+            }
         }
+
         /// <summary>
-        /// Удаляет запись в таблице BankAccount по указанному идентификатору.
+        /// Удаляет запись по идентификатору.
         /// </summary>
-        /// <remarks>Выполняет параметризованный SQL DELETE через подключение, создаваемое
-        /// CreateConnection().</remarks>
-        /// <param name="id">Идентификатор удаляемой записи счёта.</param>
+        /// <param name="id">Идентификатор удаляемой записи.</param>
         public void Delete(int id)
         {
-            string sql = "DELETE FROM BankAccount WHERE id_bankAccount = @Id";
+            using (var connection = CreateConnection())
+            {
+                PropertyInfo idProperty = GetIdProperty();
 
-            using var db = CreateConnection();
-            db.Execute(sql, new { Id = id });
+                string idColumn =
+                    SqlName(GetColumnName(idProperty));
+
+                string sql =
+                    "DELETE FROM " + SqlName(tableName) +
+                    " WHERE " + idColumn + " = @Id";
+
+                connection.Execute(sql, new { Id = id });
+            }
         }
     }
 }

@@ -16,10 +16,10 @@ namespace Lab1.BusinessLogic
         public override void Load()
         {
             // Связываем интерфейс репозитория с EntityFramework-реализацией
-            // И делаем его синглтоном (.InSingletonScope())
-            Bind<IRepository<BankAccount>>().To<EntityRepository<BankAccount>>().InSingletonScope();
-
-            Bind<DbContext>().To<DBContext>().InSingletonScope();
+            //Bind<DbContext>().To<DBContext>().InSingletonScope();
+            //Bind<IRepository<BankAccount>>().To<EntityRepository<BankAccount>>().InSingletonScope();
+            Bind<IRepository<BankAccount>>().To<DapperRepository<BankAccount>>().InSingletonScope().WithConstructorArgument("connectionString",DbConfig.ConnectionString);
+            
         }
     }
 }
