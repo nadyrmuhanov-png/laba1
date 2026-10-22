@@ -18,6 +18,7 @@ class ConsoleApp
     {
         // Создаем ядро Ninject с нашим модулем
         IKernel ninjectKernel = new StandardKernel(new SimpleConfigModule());
+       
 
         // Внедряем зависимость через контейнер
         _logic = ninjectKernel.Get<Logic>();
