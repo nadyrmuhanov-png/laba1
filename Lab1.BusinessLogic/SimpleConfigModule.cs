@@ -28,8 +28,12 @@ namespace Lab1.BusinessLogic
                 .WithConstructorArgument("connectionString", DbConfig.ConnectionString);
 
 
-            Bind<AccountService>().ToSelf();
-            Bind<TransferService>().ToSelf();
+            /// Регистрация сервиса управления банковскими счетами
+            Bind<IAccountService>().To<AccountService>();
+
+            /// Регистрация сервиса переводов
+            Bind<ITransferService>().To<TransferService>();
+            /// Регистрация других сервисов бизнес-логики при необходимости
             Bind<Logic>().ToSelf();
 
         }
