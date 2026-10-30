@@ -1,3 +1,4 @@
+
 ﻿using Lab1.DataAccessLayer;
 using Lab1.Model.ModelsDB;
 using Microsoft.EntityFrameworkCore;
@@ -5,41 +6,32 @@ using Ninject.Modules;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Lab1.Model.ModelsDB;
+using Ninject.Modules;
+
 
 namespace Lab1.BusinessLogic
 {
     /// <summary>
-    /// Модуль конфигурации зависимостей Ninject для слоя бизнес-логики.
+    /// Регистрация зависимостей бизнес-логики в контейнере Ninject.
     /// </summary>
     public class SimpleConfigModule : NinjectModule
     {
         /// <summary>
-        /// Конфигурирует внедрение зависимостей для репозиториев банковских счетов с использованием выбранной
-        /// реализации.
+        /// Регистрация зависимостей бизнес-логики в контейнере Ninject.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Выбрана неподдерживаемая реализация репозитория.</exception>
         public override void Load()
         {
-            string selection = "EntityFramework"; // Выбор реализации репозитория: "EntityFramework" или "Dapper"
+            Bind<IRepository<BankAccount>>()
+                .To<DapperRepository<BankAccount>>()
+                .InSingletonScope()
+                .WithConstructorArgument("connectionString", DbConfig.ConnectionString);
 
-            if (selection == "EntityFramework")
-            {
-                // Связываем интерфейс репозитория с EntityFramework-реализацией
-                Bind<DbContext>().To<DBContext>().InSingletonScope();
-                Bind<IRepository<BankAccount>>().To<EntityRepository<BankAccount>>().InSingletonScope();
-            }
-            else if (selection == "Dapper")
-            {
-                // Связываем интерфейс репозитория с Dapper-реализацией
-                Bind<IRepository<BankAccount>>().To<DapperBankAccountRepository>().InSingletonScope()
-                    .WithConstructorArgument("connectionString", DbConfig.ConnectionString);
-            }
-            else
-            {
-                throw new InvalidOperationException("Неверный выбор реализации репозитория.");
-            }
-            
-            
+
+            Bind<AccountService>().ToSelf();
+            Bind<TransferService>().ToSelf();
+            Bind<Logic>().ToSelf();
+
         }
     }
 }
